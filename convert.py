@@ -62,6 +62,7 @@ def clkol(obj, namespace, last):
         return last in check_list_keyed_object(obj, namespace)
 
 def recursive_exec(doc, operations, wf, pdb):
+    print("AAAAAAAAAAAAAAAa", operations)
     for operation in operations:
         working_field = wf
         if(operation[0] == '$'): # this is a field name in the current document
@@ -69,13 +70,14 @@ def recursive_exec(doc, operations, wf, pdb):
             recursive_exec(doc, copy.copy(operations[operation]), copy.copy(working_field), pdb)
         elif(operation == "for"):
             for_index = 0
-            print('for test', get_list_keyed_obj(doc, working_field))
+            # print('for test', get_list_keyed_obj(doc, working_field))
             for lot_for in get_list_keyed_obj(doc, working_field):
-                print(lot_for)
+                # print(lot_for)
                 new_wf = copy.copy(working_field)
                 new_wf.append(copy.copy(for_index))
-                print(working_field)
-                recursive_exec(doc, copy.copy(operations[operation]), copy.copy(new_wf), pdb)
+                # print(working_field)
+                for ops in operations[operation]:
+                    recursive_exec(doc, copy.copy(ops), copy.copy(new_wf), pdb)
                 for_index += 1
         elif(operation == "insert"):
             table_name = operations[operation]["name"]
