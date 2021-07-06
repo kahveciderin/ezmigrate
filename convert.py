@@ -69,10 +69,13 @@ def recursive_exec(doc, operations, wf, pdb):
             recursive_exec(doc, copy.copy(operations[operation]), copy.copy(working_field), pdb)
         elif(operation == "for"):
             for_index = 0
-            for ops in operations[operation]:
+            print('for test', get_list_keyed_obj(doc, working_field))
+            for lot_for in get_list_keyed_obj(doc, working_field):
+                print(lot_for)
                 new_wf = copy.copy(working_field)
-                new_wf.append(for_index)
-                recursive_exec(doc, copy.copy(ops), copy.copy(new_wf), pdb)
+                new_wf.append(copy.copy(for_index))
+                print(working_field)
+                recursive_exec(doc, copy.copy(operations[operation]), copy.copy(new_wf), pdb)
                 for_index += 1
         elif(operation == "insert"):
             table_name = operations[operation]["name"]
@@ -122,4 +125,4 @@ for database in db_settings["dbnames"]:
     for mtableop in db_settings["operations"]:
         mongo_table = mongo_db[mtableop] # first we get the table we want to work in
         for doc in mongo_table.find(): # then we loop over all the documents
-            recursive_exec(doc, db_settings["operations"][mtableop], [], postgre_db)
+            recursive_exec(doc, copy.copy(db_settings["operations"][mtableop]), [], postgre_db)
