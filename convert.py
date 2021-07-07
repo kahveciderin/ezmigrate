@@ -109,7 +109,9 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
             sql_query = """INSERT INTO {0} ({1}) VALUES ({2}) RETURNING id""".format(table_name, table_in_cols, table_val_cols)
             if "options" in operations[operation]:
                 if "unique" in operations[operation]["options"]:
-                    pass # add unique insert query
+                    sql_query = """INSERT INTO {0} ({1})
+                    VALUES ({2}) ON CONFLICT ({1})
+                    DO UPDATE SET {3}=EXCLUDED.{3} RETURNING id""".format(table_name, table_in_cols, table_val_cols, list(ivl_vals)[0])
             print('attempting: ', sql_query, ivl_vals)
             postgres_cursor.execute(sql_query, ivl_vals)
             pdb.commit()
