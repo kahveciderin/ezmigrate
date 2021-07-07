@@ -31,7 +31,7 @@ Create a .json file in your working directory, and add the following JSON struct
 }
 ```
 
-**Warning:** `thread_count_per_operation_per_database` is the number of threads the program will spawn PER ROOT LEVEL SCOPE PER DATABASE. If you have 3 root level scopes and 6 databases, the threads spawned will be 3 * 6 * thread_count_per_operation_per_database.
+**Warning:** `thread_count_per_operation_per_database` is the number of threads the program will have as children at any time.
 
 
 **Note:** In order for this to work, there needs to be an `id` field in every table in PostgreSQL that is set to SERIAL and is the PRIMARY KEY.
