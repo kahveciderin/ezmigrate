@@ -53,7 +53,7 @@ Available directives:
 
 `insert` directive takes an object with specifications telling it where to insert.
 
-Available specifications are:
+Available specifications are:  
 `name`: required  
    * Name of the table as string.  
 `fields`: required  
