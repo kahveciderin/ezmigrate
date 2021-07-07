@@ -12,6 +12,14 @@ Migration tool for migrating from MongoDB to PostgreSQL
 Create a .json file in your working directory, and add the following JSON structure in it:
 ```
 {
+    "dbsetup": {
+        "username": "<postgres username>",
+        "password": "<postgres password>",
+        "host": "<postgres host>",
+        "port": "<postgres port>",
+        "mongo_uri": "mongodb://<mongo uri (without database name)>",
+        "thread_count_per_operation_per_database": <count>
+    },
     "dbnames": [
         {
             "input": "<mongo db name>",
@@ -22,6 +30,9 @@ Create a .json file in your working directory, and add the following JSON struct
     }
 }
 ```
+
+**Warning:** `thread_count_per_operation_per_database` is the number of threads the program will spawn PER ROOT LEVEL SCOPE PER DATABASE. If you have 3 root level scopes and 6 databases, the threads spawned will be 3 * 6 * thread_count_per_operation_per_database.
+
 
 **Note:** In order for this to work, there needs to be an `id` field in every table in PostgreSQL that is set to SERIAL and is the PRIMARY KEY.
 
@@ -64,3 +75,4 @@ Available specifications are:
         `unique` tells the database that this permutation of fields needs to be unique in order to insert into the database. If not, an empty UPDATE call will be executed, resulting in no change in the database.
 `after`: optional
     this is an object, similar to the root level `operations`, that will execute the contents, but it will do it after the insert operation is done. Also, the `id` field will be returned as variable `$$psid`.
+
