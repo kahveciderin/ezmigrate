@@ -1,9 +1,12 @@
+#!/usr/bin/python3
+
 from multiprocessing import Process
 import psycopg2
 import pymongo
 import json
 import time
 import copy
+import sys
 
 
 
@@ -144,10 +147,15 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                 recursive_exec(aid, doc, copy.copy(operations[operation]["after"]), copy.copy(working_field), pdb_name) # aid[0] is document id, aid[1] is id of the last inserted
 
 
+
+if len(sys.argv) != 2:
+    print("Usage: ezmigrate <database_schema.json>")
+    exit(-1)
+
 try:
-    db_settings = json.loads(open('dbschmap.json').read())
+    db_settings = json.loads(open(sys.argv[1]).read())
 except Exception as e:
-    print("Either the file dbschmap.json could not be found in your working directory, or it doesn't contain valid json.\nDetails:")
+    print("Either the file "+ sys.argv[1] +" could not be found in your working directory, or it doesn't contain valid json.\nDetails:")
     print(e)
     exit(-1)
 try:
@@ -155,6 +163,7 @@ try:
 except:
     print("Mongo server is not accessible")
     exit(-1)
+
 
 THREAD_COUNT_PER_OPERATION_PER_DATABASE = db_settings["dbsetup"]["thread_count_per_operation_per_database"]
 for database in db_settings["dbnames"]:
