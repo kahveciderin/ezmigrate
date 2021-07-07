@@ -3,12 +3,10 @@
 from multiprocessing import Process
 import psycopg2
 import pymongo
-import signal
 import json
 import time
 import copy
 import sys
-import os
 
 
 THREAD_COUNT_PER_OPERATION_PER_DATABASE = 1
