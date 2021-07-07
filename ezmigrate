@@ -3,11 +3,12 @@
 from multiprocessing import Process
 import psycopg2
 import pymongo
+import signal
 import json
 import time
 import copy
 import sys
-
+import os
 
 
 THREAD_COUNT_PER_OPERATION_PER_DATABASE = 1
@@ -94,6 +95,9 @@ def recursive_eval(document_id, doc, wf, evals):
 def recursive_exec(document_id, doc, operations, wf, pdb):
     pdb_name = copy.copy(pdb)
     pdb = con_pql(pdb) # immediately restore postgre database
+    if pdb == -1:
+        print('Fatal Error: Could not connect to the PostgreSQL database.')
+        exit(-1) # will only exit the current process, effectively skipping the operation.
     for operation in operations:
         working_field = wf
         if(operation[0] == '$'): # this is a field name in the current document
@@ -137,7 +141,7 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                     sql_query = """INSERT INTO {0} ({1})
                     VALUES ({2}) ON CONFLICT ({4})
                     DO UPDATE SET {3}=EXCLUDED.{3} RETURNING id""".format(table_name, table_in_cols, table_val_cols, list(ivl_vals)[0], hiv_vals)
-            print('attempting: ', postgres_cursor.mogrify(sql_query, ivl_vals))
+            # print('attempting: ', postgres_cursor.mogrify(sql_query, ivl_vals))
             postgres_cursor.execute(sql_query, ivl_vals)
             pdb.commit()
             apparent_id = postgres_cursor.fetchone()[0]
@@ -181,12 +185,12 @@ for database in db_settings["dbnames"]:
         jobs = []
         for doc in mongo_docs: # then we loop over all the documents
             while len(jobs) >= THREAD_COUNT_PER_OPERATION_PER_DATABASE:# thread count per database per operation
-                jobs = [job for job in jobs if job.is_alive()]
+                jobs = [job for job in jobs if job["thread"].is_alive()]
                 # print("waiting for a job to finish... thread count: ", len(jobs))
                 time.sleep(0.01)
             print("Thread start", thread_id)
             mongo_thread = Process(target=recursive_exec, args=([document_id], doc, copy.copy(db_settings["operations"][mtableop]), [], postgre_db))
             mongo_thread.start()
-            jobs.append(mongo_thread)
+            jobs.append({"thread": mongo_thread, "tid": thread_id})
             document_id += 1
             thread_id += 1
