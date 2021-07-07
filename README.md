@@ -46,8 +46,8 @@ A scope is an object or a field in the MongoDB object that needs to be further p
 
 Available directives:
 
-`insert`
-`for`
+  * `insert`
+  * `for`
 
 `for` directive takes an array of objects that contain operations/scopes/other directives. It then runs every object in that array for each object in the previously selected array in MongoDB. It will also return the current index in the loop as `$$lindex-n` where *n* is the number of for loops you want to go in.
 
