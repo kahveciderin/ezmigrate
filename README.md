@@ -54,8 +54,12 @@ Available directives:
 `insert` directive takes an object with specifications telling it where to insert.
 
 Available specifications are:  
+
+
 `name`: required  
    * Name of the table as string.  
+
+
 `fields`: required  
    * An object with source: destination pairs.  
    * Source can be one of:  
@@ -70,9 +74,13 @@ Available specifications are:
             `$$psid` from **insert** -> **after**  
         - An inline operation (Note that this is different from normal operations):  
             `$push-source` will push the source element from the current scope to an array  
+            
+            
 `options`: optional  
   * inside `options`, you can set a few options:  
       * `unique` tells the database that this permutation of fields needs to be unique in order to insert into the database. If not, an empty UPDATE call will be executed, resulting in no change in the database.  
+
+
 `after`: optional  
   * this is an object, similar to the root level `operations`, that will execute the contents, but it will do it after the insert operation is done. Also, the `id` field will be returned as variable `$$psid`.  
 
