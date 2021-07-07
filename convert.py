@@ -7,7 +7,7 @@ import copy
 
 
 
-THREAD_COUNT_PER_OPERATION_PER_DATABASE = 16
+THREAD_COUNT_PER_OPERATION_PER_DATABASE = 1
 
 
 
@@ -51,9 +51,16 @@ def glkol(obj, namespace, last, did = -1):
         elif last.startswith('$$docn'):
             return did[0]
         elif last.startswith('$$psid'):
-            return did[1]
+            return did[len(did) - 1]
+        elif last.startswith('$$push-'):
+            pushcol = int(last.split('-')[1])
+            retval = []
+            for a in glkol(obj, namespace, pushcol):
+                retval.append(a)
+            return retval
     else:
-        return get_list_keyed_obj(obj, namespace)[last]
+        newnsp = namespace + last.split('.')
+        return get_list_keyed_obj(obj, copy.copy(newnsp))
 
 def check_list_keyed_object(obj, namespace):
     aaret = obj
@@ -74,7 +81,10 @@ def clkol(obj, namespace, last):
     if last.startswith('$$'):
         return True
     else:
-        return last in check_list_keyed_object(obj, namespace)
+        return last.split('.')[len(last.split('.')) - 1] in check_list_keyed_object(obj, namespace + last.split('.')[:-1])
+
+def recursive_eval(document_id, doc, wf, evals):
+    pass
 
 def recursive_exec(document_id, doc, operations, wf, pdb):
     pdb_name = copy.copy(pdb)
@@ -122,7 +132,7 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                     sql_query = """INSERT INTO {0} ({1})
                     VALUES ({2}) ON CONFLICT ({4})
                     DO UPDATE SET {3}=EXCLUDED.{3} RETURNING id""".format(table_name, table_in_cols, table_val_cols, list(ivl_vals)[0], hiv_vals)
-            print('attempting: ', sql_query, ivl_vals)
+            print('attempting: ', postgres_cursor.mogrify(sql_query, ivl_vals))
             postgres_cursor.execute(sql_query, ivl_vals)
             pdb.commit()
             apparent_id = postgres_cursor.fetchone()[0]
@@ -144,7 +154,7 @@ except:
     print("Mongo server is not accessible")
     exit(-1)
 
-
+THREAD_COUNT_PER_OPERATION_PER_DATABASE = db_settings["dbsetup"]["thread_count_per_operation_per_database"]
 for database in db_settings["dbnames"]:
     print("Connecting to {0}...".format(database["output"]))
     postgre_db = database["output"] # we pass the name here because this will be reconnected every time while multiprocessing
@@ -159,17 +169,13 @@ for database in db_settings["dbnames"]:
         mongo_docs = mongo_table.find()
         jobs = []
         for doc in mongo_docs: # then we loop over all the documents
-            # recursive_exec([document_id], doc, copy.copy(db_settings["operations"][mtableop]), [], postgre_db)
-            # mongo_thread = threading.Thread(target=recursive_exec, args=([document_id], doc, copy.copy(db_settings["operations"][mtableop]), [], postgre_db))
-            # mongo_thread.start()
+            while len(jobs) >= THREAD_COUNT_PER_OPERATION_PER_DATABASE:# thread count per database per operation
+                jobs = [job for job in jobs if job.is_alive()]
+                # print("waiting for a job to finish... thread count: ", len(jobs))
+                time.sleep(0.01)
+            print("Thread start", thread_id)
             mongo_thread = Process(target=recursive_exec, args=([document_id], doc, copy.copy(db_settings["operations"][mtableop]), [], postgre_db))
             mongo_thread.start()
-            print("THREAD START")
             jobs.append(mongo_thread)
             document_id += 1
             thread_id += 1
-            if(thread_id % THREAD_COUNT_PER_OPERATION_PER_DATABASE == 0): # thread count per database per operation
-                thread_id = 0
-                while len(jobs) > 0:
-                    jobs = [job for job in jobs if job.is_alive()]
-                    time.sleep(1)
