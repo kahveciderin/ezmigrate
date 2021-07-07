@@ -60,6 +60,8 @@ def glkol(obj, namespace, last, did = -1):
             return retval
     else:
         newnsp = namespace + last.split('.')
+        if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
+            newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
         return get_list_keyed_obj(obj, copy.copy(newnsp))
 
 def check_list_keyed_object(obj, namespace):
@@ -81,7 +83,7 @@ def clkol(obj, namespace, last):
     if last.startswith('$$'):
         return True
     else:
-        return last.split('.')[len(last.split('.')) - 1] in check_list_keyed_object(obj, namespace + last.split('.')[:-1])
+        return last.split('.')[len(last.split('.')) - 1] in check_list_keyed_object(obj, copy.copy(namespace + last.split('.')[:-1]))
 
 def recursive_eval(document_id, doc, wf, evals):
     pass
