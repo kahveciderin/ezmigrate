@@ -55,10 +55,10 @@ Available directives:
 
 Available specifications are:
 `name`: required  
-    Name of the table as string.  
+   * Name of the table as string.  
 `fields`: required  
-    An object with source: destination pairs.  
-    Source can be one of:  
+   * An object with source: destination pairs.  
+   * Source can be one of:  
         - An object in MongoDB from the current scope:  
             ```"source": "destination"```  
             ```"source.elem": "destination"```  
@@ -71,8 +71,8 @@ Available specifications are:
         - An inline operation (Note that this is different from normal operations):  
             `$push-source` will push the source element from the current scope to an array  
 `options`: optional  
-    inside `options`, you can set a few options:  
-        `unique` tells the database that this permutation of fields needs to be unique in order to insert into the database. If not, an empty UPDATE call will be executed, resulting in no change in the database.  
+  * inside `options`, you can set a few options:  
+      * `unique` tells the database that this permutation of fields needs to be unique in order to insert into the database. If not, an empty UPDATE call will be executed, resulting in no change in the database.  
 `after`: optional  
-    this is an object, similar to the root level `operations`, that will execute the contents, but it will do it after the insert operation is done. Also, the `id` field will be returned as variable `$$psid`.  
+  * this is an object, similar to the root level `operations`, that will execute the contents, but it will do it after the insert operation is done. Also, the `id` field will be returned as variable `$$psid`.  
 
