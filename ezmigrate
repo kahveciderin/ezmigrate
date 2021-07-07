@@ -185,6 +185,8 @@ for database in db_settings["dbnames"]:
         jobs = []
         for doc in mongo_docs: # then we loop over all the documents
             while len(jobs) >= THREAD_COUNT_PER_OPERATION_PER_DATABASE:# thread count per database per operation
+                for fjob in [job for job in jobs if job["thread"].is_alive()]:
+                    print("Thread end", fjob["tid"])
                 jobs = [job for job in jobs if job["thread"].is_alive()]
                 # print("waiting for a job to finish... thread count: ", len(jobs))
                 time.sleep(0.01)
