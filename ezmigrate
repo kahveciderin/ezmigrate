@@ -60,6 +60,9 @@ def glkol(obj, namespace, last, did = -1):
             for a in glkol(obj, namespace, pushcol):
                 retval.append(a)
             return retval
+        if last.startswith('$$oidc-'):
+            id_hellstr = str(last.split('-')[1])
+            return id_hellstr
     else:
         newnsp = namespace + last.split('.')
         if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
