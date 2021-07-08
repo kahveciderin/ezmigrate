@@ -61,10 +61,11 @@ def glkol(obj, namespace, last, did = -1):
                 retval.append(a)
             return retval
         if last.startswith('$$oids-'):
-            id_hellstr = str(last.split('-')[1])
+            glkol(obj, namespace, last.split('-')[1], did)
+            id_hellstr = str(glkol(obj, namespace, last.split('-')[1], did))
             return id_hellstr
         if last.startswith('$$oidc-'):
-            id_hellstr = int(str(last.split('-')[1]), base=16)
+            id_hellstr = int(str(glkol(obj, namespace, last.split('-')[1], did)), base=16)
             return id_hellstr
     else:
         newnsp = namespace + last.split('.')
