@@ -125,7 +125,7 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                     indexed_ivl = operations[operation]["fields"][ivl]
                     in_vals[ivl] = glkol(doc, working_field, ivl, did=document_id)
                     ivl_vals[indexed_ivl] = glkol(doc, working_field, ivl, did=document_id) # i am too tired right now to understand what i did here
-                hiv_vals += ivl + ','
+                hiv_vals += operations[operation]["fields"][ivl] + ','
             hiv_vals = hiv_vals[:-1]
 
             table_in_cols = ""
