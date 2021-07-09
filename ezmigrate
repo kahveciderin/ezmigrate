@@ -70,7 +70,10 @@ def glkol(obj, namespace, last, did = -1):
     else:
         newnsp = namespace + last.split('.')
         if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
-            newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
+            if newnsp[len(newnsp) - 1] == '#root':
+                newnsp = []
+            else:
+                newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
         return get_list_keyed_obj(obj, copy.copy(newnsp))
 
 def check_list_keyed_object(obj, namespace):
