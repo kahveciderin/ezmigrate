@@ -4,6 +4,7 @@ from multiprocessing import Process
 import psycopg2
 import pymongo
 import json
+import bson
 import time
 import copy
 import sys
@@ -17,6 +18,7 @@ THREAD_COUNT_PER_OPERATION_PER_DATABASE = 1
 
 db_settings = {}
 
+debug = False
 
 
 
@@ -68,22 +70,26 @@ def glkol(obj, namespace, last, did = -1):
             id_hellstr = int(str(glkol(obj, namespace, last.split('-')[1], did)), base=16)
             return id_hellstr
     else:
-        newnsp = namespace # + last.split('.')
-        
+        newnsp = copy.copy(namespace) # + last.split('.')
+        if debug:
+            print("======")
+            print("newnsp", newnsp)
+            print("last", last)
         if last.split('.')[0].startswith('#'): # parent element selector
             if last.split('.')[0] == '#root':
                 newnsp = []
             else:
                 newnsp = newnsp[:-(int(last.split('.')[0][1:]) + 0)]
 
-        if len(last.split('.')) > 1:
+        if debug:
+            print("new newnsp", newnsp)
+        if last.split('.')[0].startswith('#'):
             newnsp += last.split('.')[1:]
-
-        # if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
-        #     if newnsp[len(newnsp) - 1] == '#root':
-        #         newnsp = []
-        #     else:
-        #         newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
+        else:
+            newnsp += last.split('.')
+        if debug:
+            print("parented newnsp", newnsp)
+            print("======")
         return get_list_keyed_obj(obj, copy.copy(newnsp))
 
 def check_list_keyed_object(obj, namespace):
@@ -103,6 +109,8 @@ def check_list_keyed_object(obj, namespace):
 
 def clkol(obj, namespace, last):
     if last.startswith('$$'):
+        return True
+    elif last.startswith('#'):
         return True
     else:
         return last.split('.')[len(last.split('.')) - 1] in check_list_keyed_object(obj, copy.copy(namespace + last.split('.')[:-1]))
@@ -139,6 +147,8 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                     indexed_ivl = operations[operation]["fields"][ivl]
                     in_vals[ivl] = glkol(doc, working_field, ivl, did=document_id)
                     ivl_vals[indexed_ivl] = glkol(doc, working_field, ivl, did=document_id) # i am too tired right now to understand what i did here
+                    if(type(ivl_vals[indexed_ivl]) is bson.objectid.ObjectId): # if objectid just convert to string
+                        ivl_vals[indexed_ivl] = str(ivl_vals[indexed_ivl])
                 hiv_vals += operations[operation]["fields"][ivl] + ','
             hiv_vals = hiv_vals[:-1]
 
@@ -159,7 +169,8 @@ def recursive_exec(document_id, doc, operations, wf, pdb):
                     sql_query = """INSERT INTO {0} ({1})
                     VALUES ({2}) ON CONFLICT ({4})
                     DO UPDATE SET {3}=EXCLUDED.{3} RETURNING id""".format(table_name, table_in_cols, table_val_cols, list(ivl_vals)[0], hiv_vals)
-            # print('attempting: ', postgres_cursor.mogrify(sql_query, ivl_vals))
+            if debug:
+                print('attempting: ', postgres_cursor.mogrify(sql_query, ivl_vals))
             postgres_cursor.execute(sql_query, ivl_vals)
             pdb.commit()
             apparent_id = postgres_cursor.fetchone()[0]
@@ -188,6 +199,7 @@ except:
 
 
 THREAD_COUNT_PER_OPERATION_PER_DATABASE = db_settings["dbsetup"]["thread_count_per_operation_per_database"]
+debug = 'debug' in db_settings["dbsetup"] and db_settings["dbsetup"]["debug"] != 0
 for database in db_settings["dbnames"]:
     print("Connecting to {0}...".format(database["output"]))
     postgre_db = database["output"] # we pass the name here because this will be reconnected every time while multiprocessing
