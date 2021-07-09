@@ -68,12 +68,22 @@ def glkol(obj, namespace, last, did = -1):
             id_hellstr = int(str(glkol(obj, namespace, last.split('-')[1], did)), base=16)
             return id_hellstr
     else:
-        newnsp = namespace + last.split('.')
-        if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
-            if newnsp[len(newnsp) - 1] == '#root':
+        newnsp = namespace # + last.split('.')
+        
+        if last.split('.')[0].startswith('#'): # parent element selector
+            if last.split('.')[0] == '#root':
                 newnsp = []
             else:
-                newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
+                newnsp = newnsp[:-(int(last.split('.')[0][1:]) + 0)]
+
+        if len(last.split('.')) > 1:
+            newnsp += last.split('.')[1:]
+
+        # if newnsp[len(newnsp) - 1].startswith('#'): # access to parent element
+        #     if newnsp[len(newnsp) - 1] == '#root':
+        #         newnsp = []
+        #     else:
+        #         newnsp = newnsp[:-(int(newnsp[len(newnsp) - 1][1:]) + 1)]
         return get_list_keyed_obj(obj, copy.copy(newnsp))
 
 def check_list_keyed_object(obj, namespace):
